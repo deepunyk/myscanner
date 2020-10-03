@@ -1,6 +1,9 @@
-package id.aashari.code.camerascanner;
+package id.tfn.code.myscanner;
 
-import android.app.Activity;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.ViewModelProvider;
+
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
@@ -14,21 +17,25 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import id.aashari.code.camerascanner.helpers.MyConstants;
-import id.aashari.code.camerascanner.libraries.NativeClass;
-import id.aashari.code.camerascanner.libraries.PolygonView;
+import id.tfn.code.myscanner.data.Photo;
+import id.tfn.code.myscanner.data.PhotoViewModel;
+import id.tfn.code.myscanner.helpers.MyConstants;
+import id.tfn.code.myscanner.libraries.NativeClass;
+import id.tfn.code.myscanner.libraries.PolygonView;
 
-public class ImageCropActivity extends Activity {
+public class CropActivity extends AppCompatActivity {
 
     FrameLayout holderImageCrop;
     ImageView imageView;
@@ -37,11 +44,21 @@ public class ImageCropActivity extends Activity {
     Button btnImageEnhance;
 
     NativeClass nativeClass;
+    Toolbar toolbar;
+
+    private PhotoViewModel photoViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_image_crop);
+        setContentView(R.layout.activity_crop);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        photoViewModel = new ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(this.getApplication())).get(PhotoViewModel.class);
+
         initializeElement();
     }
 
@@ -64,40 +81,52 @@ public class ImageCropActivity extends Activity {
 
     private void initializeCropping() {
 
-        selectedImageBitmap = MyConstants.selectedImageBitmap;
-        MyConstants.selectedImageBitmap = null;
+        try {
+            selectedImageBitmap = MyConstants.selectedImageBitmap;
+            MyConstants.selectedImageBitmap = null;
 
-        Bitmap scaledBitmap = scaledBitmap(selectedImageBitmap, holderImageCrop.getWidth(), holderImageCrop.getHeight());
-        imageView.setImageBitmap(scaledBitmap);
+            Bitmap scaledBitmap = scaledBitmap(selectedImageBitmap, holderImageCrop.getWidth(), holderImageCrop.getHeight());
+            imageView.setImageBitmap(scaledBitmap);
 
-        Bitmap tempBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
-        Map<Integer, PointF> pointFs = getEdgePoints(tempBitmap);
+            Bitmap tempBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+            Map<Integer, PointF> pointFs = getEdgePoints(tempBitmap);
 
-        polygonView.setPoints(pointFs);
-        polygonView.setVisibility(View.VISIBLE);
+            polygonView.setPoints(pointFs);
+            polygonView.setVisibility(View.VISIBLE);
 
-        int padding = (int) getResources().getDimension(R.dimen.scanPadding);
+            int padding = (int) getResources().getDimension(R.dimen.scanPadding);
 
-        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(tempBitmap.getWidth() + 2 * padding, tempBitmap.getHeight() + 2 * padding);
-        layoutParams.gravity = Gravity.CENTER;
+            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(tempBitmap.getWidth() + 2 * padding, tempBitmap.getHeight() + 2 * padding);
+            layoutParams.gravity = Gravity.CENTER;
 
-        polygonView.setLayoutParams(layoutParams);
+            polygonView.setLayoutParams(layoutParams);
+        }
+        catch (Exception e){
+            Toast.makeText(this, "No document found", Toast.LENGTH_SHORT).show();
+            Bitmap tempBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(tempBitmap.getWidth(), tempBitmap.getHeight());
+            layoutParams.gravity = Gravity.CENTER;
 
+            polygonView.setVisibility(View.VISIBLE);
+
+            polygonView.setLayoutParams(layoutParams);
+        }
     }
 
     private View.OnClickListener btnImageEnhanceClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
 
-            //save selected bitmap to our constants
-            //this method will save the image to our device memory
-            //so set this variable to null after the image is no longer used
-            MyConstants.selectedImageBitmap = getCroppedImage();
-
-            //create new intent to start process image
-            Intent intent = new Intent(getApplicationContext(), ImageEnhanceActivity.class);
+            Bitmap bitmap = getCroppedImage();
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            byte[] byteArray = stream.toByteArray();
+            bitmap.recycle();
+            Photo photo = new Photo(byteArray,"original");
+            photoViewModel.insert(photo);
+            Intent intent = new Intent(CropActivity.this, HomeActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
-
         }
     };
 
@@ -122,22 +151,22 @@ public class ImageCropActivity extends Activity {
     }
 
     private Bitmap scaledBitmap(Bitmap bitmap, int width, int height) {
-        Log.v("aashari-tag", "scaledBitmap");
-        Log.v("aashari-tag", width + " " + height);
+        Log.v("tfn-tag", "scaledBitmap");
+        Log.v("tfn-tag", width + " " + height);
         Matrix m = new Matrix();
         m.setRectToRect(new RectF(0, 0, bitmap.getWidth(), bitmap.getHeight()), new RectF(0, 0, width, height), Matrix.ScaleToFit.CENTER);
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);
     }
 
     private Map<Integer, PointF> getEdgePoints(Bitmap tempBitmap) {
-        Log.v("aashari-tag", "getEdgePoints");
+        Log.v("tfn-tag", "getEdgePoints");
         List<PointF> pointFs = getContourEdgePoints(tempBitmap);
         Map<Integer, PointF> orderedPoints = orderedValidEdgePoints(tempBitmap, pointFs);
         return orderedPoints;
     }
 
     private List<PointF> getContourEdgePoints(Bitmap tempBitmap) {
-        Log.v("aashari-tag", "getContourEdgePoints");
+        Log.v("tfn-tag", "getContourEdgePoints");
 
         MatOfPoint2f point2f = nativeClass.getPoint(tempBitmap);
         List<Point> points = Arrays.asList(point2f.toArray());
@@ -152,7 +181,7 @@ public class ImageCropActivity extends Activity {
     }
 
     private Map<Integer, PointF> getOutlinePoints(Bitmap tempBitmap) {
-        Log.v("aashari-tag", "getOutlinePoints");
+        Log.v("tfn-tag", "getOutlinePoints");
         Map<Integer, PointF> outlinePoints = new HashMap<>();
         outlinePoints.put(0, new PointF(0, 0));
         outlinePoints.put(1, new PointF(tempBitmap.getWidth(), 0));
@@ -162,7 +191,7 @@ public class ImageCropActivity extends Activity {
     }
 
     private Map<Integer, PointF> orderedValidEdgePoints(Bitmap tempBitmap, List<PointF> pointFs) {
-        Log.v("aashari-tag", "orderedValidEdgePoints");
+        Log.v("tfn-tag", "orderedValidEdgePoints");
         Map<Integer, PointF> orderedPoints = polygonView.getOrderedPoints(pointFs);
         if (!polygonView.isValidShape(orderedPoints)) {
             orderedPoints = getOutlinePoints(tempBitmap);
@@ -170,4 +199,9 @@ public class ImageCropActivity extends Activity {
         return orderedPoints;
     }
 
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
+    }
 }

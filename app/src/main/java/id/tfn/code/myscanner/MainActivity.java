@@ -1,11 +1,11 @@
-package id.aashari.code.camerascanner;
+package id.tfn.code.myscanner;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -13,7 +13,7 @@ import android.widget.ImageView;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-import id.aashari.code.camerascanner.helpers.MyConstants;
+import id.tfn.code.myscanner.helpers.MyConstants;
 
 public class MainActivity extends AppCompatActivity {
 

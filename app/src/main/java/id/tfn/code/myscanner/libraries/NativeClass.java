@@ -1,4 +1,4 @@
-package id.aashari.code.camerascanner.libraries;
+package id.tfn.code.myscanner.libraries;
 
 import android.graphics.Bitmap;
 
@@ -17,8 +17,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import id.aashari.code.camerascanner.helpers.ImageUtils;
-import id.aashari.code.camerascanner.helpers.MathUtils;
+import id.tfn.code.myscanner.helpers.ImageUtils;
+import id.tfn.code.myscanner.helpers.MathUtils;
 
 public class NativeClass {
 
@@ -32,7 +32,7 @@ public class NativeClass {
     private static final double DOWNSCALE_IMAGE_SIZE = 600f;
 
     public Bitmap getScannedBitmap(Bitmap bitmap, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) {
-        PerspectiveTransformation perspective = new PerspectiveTransformation();
+        id.tfn.code.myscanner.libraries.PerspectiveTransformation perspective = new id.tfn.code.myscanner.libraries.PerspectiveTransformation();
         MatOfPoint2f rectangle = new MatOfPoint2f();
         rectangle.fromArray(new Point(x1, y1), new Point(x2, y2), new Point(x3, y3), new Point(x4, y4));
         Mat dstMat = perspective.transform(ImageUtils.bitmapToMat(bitmap), rectangle);

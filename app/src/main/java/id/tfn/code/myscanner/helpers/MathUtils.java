@@ -1,4 +1,4 @@
-package id.aashari.code.camerascanner.helpers;
+package id.tfn.code.myscanner.helpers;
 
 import org.opencv.core.CvType;
 import org.opencv.core.MatOfPoint;

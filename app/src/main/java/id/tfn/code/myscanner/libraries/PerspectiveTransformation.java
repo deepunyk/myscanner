@@ -1,4 +1,4 @@
-package id.aashari.code.camerascanner.libraries;
+package id.tfn.code.myscanner.libraries;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;

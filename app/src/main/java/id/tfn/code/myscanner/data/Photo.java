@@ -11,7 +11,8 @@ public class Photo {
     @PrimaryKey(autoGenerate = true)
     private int id;
 
-    private byte[] bitmap;
+    private String url;
+
 
     private String filter;
 
@@ -19,8 +20,8 @@ public class Photo {
         this.id = id;
     }
 
-    public Photo(byte[] bitmap, String filter) {
-        this.bitmap = bitmap;
+    public Photo(String url, String filter) {
+        this.url = url;
         this.filter = filter;
     }
 
@@ -28,8 +29,8 @@ public class Photo {
         return id;
     }
 
-    public byte[] getBitmap() {
-        return bitmap;
+    public String getBitmap() {
+        return url;
     }
 
     public String getFilter() {

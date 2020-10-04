@@ -22,6 +22,7 @@ import java.util.List;
 
 import id.tfn.code.myscanner.data.Photo;
 import id.tfn.code.myscanner.data.PhotoViewModel;
+import id.tfn.code.myscanner.helpers.MyConstants;
 
 public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoHolder> {
 
@@ -53,9 +54,9 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoHolder>
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(context, EditActivity.class);
-                intent.putExtra("image", curPhoto.getBitmap());
-                intent.putExtra("filter", curPhoto.getFilter());
-                intent.putExtra("id", curPhoto.getId());
+                MyConstants.filter = curPhoto.getFilter();
+                MyConstants.id = curPhoto.getId();
+                MyConstants.imageArray = curPhoto.getBitmap();
                 context.startActivity(intent);
             }
         });

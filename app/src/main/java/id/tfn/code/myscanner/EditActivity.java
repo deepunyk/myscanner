@@ -3,6 +3,8 @@ package id.tfn.code.myscanner;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.graphics.Bitmap;
@@ -16,19 +18,27 @@ import android.widget.LinearLayout;
 import net.alhazmy13.imagefilter.ImageFilter;
 
 import java.io.ByteArrayOutputStream;
+import java.util.List;
 
 import id.tfn.code.myscanner.data.Photo;
 import id.tfn.code.myscanner.data.PhotoViewModel;
+import id.tfn.code.myscanner.helpers.MyConstants;
+import id.tfn.code.myscanner.libraries.NativeClass;
 
 public class EditActivity extends AppCompatActivity {
 
 
     Toolbar toolbar;
     ImageView img;
-    LinearLayout originalLayout, gothamLayout, oldLayout, sketchLayout, hdrLayout;
-    ImageView originalImage, gothamImage, oldImage, sketchImage, hdrImage;
+    LinearLayout originalLayout, gothamLayout, oldLayout, sketchLayout, hdrLayout, bwLayout, magicLayout, grayLayout;
+    ImageView originalImage, gothamImage, oldImage, sketchImage, hdrImage, bwImage, magicImage, grayImage;
     private PhotoViewModel photoViewModel;
     int id = 0;
+    String filter = "";
+    byte[] imageArray;
+    NativeClass nativeClass = new NativeClass();
+    Bitmap originalBitmap;
+    int code = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,31 +59,67 @@ public class EditActivity extends AppCompatActivity {
         oldLayout = (LinearLayout) findViewById(R.id.old_layout);
         sketchLayout = (LinearLayout) findViewById(R.id.sketch_layout);
         hdrLayout = (LinearLayout) findViewById(R.id.hdr_layout);
+        bwLayout = (LinearLayout) findViewById(R.id.bw_layout);
+        magicLayout = (LinearLayout) findViewById(R.id.magic_layout);
+        grayLayout = (LinearLayout) findViewById(R.id.gray_layout);
 
         originalImage = (ImageView) findViewById(R.id.original_image);
         gothamImage = (ImageView) findViewById(R.id.gotham_image);
         oldImage = (ImageView) findViewById(R.id.old_image);
         sketchImage = (ImageView) findViewById(R.id.sketch_image);
         hdrImage = (ImageView) findViewById(R.id.hdr_image);
+        bwImage = (ImageView) findViewById(R.id.bw_image);
+        magicImage = (ImageView) findViewById(R.id.magic_image);
+        grayImage = (ImageView) findViewById(R.id.gray_image);
 
-        final byte[] imageArray = getIntent().getByteArrayExtra("image");
-        id = getIntent().getIntExtra("id",0);
-        final String filter = getIntent().getStringExtra("filter");
+        id = MyConstants.id;
+        filter = MyConstants.filter;
+        imageArray = MyConstants.imageArray;
 
-
-        final Bitmap originalBitmap = BitmapFactory.decodeByteArray(imageArray, 0, imageArray.length);
+        originalBitmap = BitmapFactory.decodeByteArray(imageArray, 0, imageArray.length);
         img.setImageBitmap(originalBitmap);
         originalImage.setImageBitmap(originalBitmap);
         gothamImage.setImageBitmap(ImageFilter.applyFilter(originalBitmap, ImageFilter.Filter.GOTHAM));
         oldImage.setImageBitmap(ImageFilter.applyFilter(originalBitmap, ImageFilter.Filter.OLD));
         sketchImage.setImageBitmap(ImageFilter.applyFilter(originalBitmap, ImageFilter.Filter.SKETCH));
         hdrImage.setImageBitmap(ImageFilter.applyFilter(originalBitmap, ImageFilter.Filter.HDR));
+        grayImage.setImageBitmap(nativeClass.FilterGray(originalBitmap));
+        magicImage.setImageBitmap(nativeClass.FilterMagic(originalBitmap));
+        bwImage.setImageBitmap(nativeClass.FilterBW(originalBitmap));
+
 
         originalLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 img.setImageBitmap(originalBitmap);
                 updateImage(originalBitmap,filter);
+            }
+        });
+
+        grayLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Bitmap tempBitMap = nativeClass.FilterGray(originalBitmap);
+                img.setImageBitmap(tempBitMap);
+                updateImage(tempBitMap,"gray");
+            }
+        });
+
+        bwLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Bitmap tempBitMap = nativeClass.FilterBW(originalBitmap);
+                img.setImageBitmap(tempBitMap);
+                updateImage(tempBitMap,"bw");
+            }
+        });
+
+        magicLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Bitmap tempBitMap = nativeClass.FilterMagic(originalBitmap);
+                img.setImageBitmap(tempBitMap);
+                updateImage(tempBitMap,"magic");
             }
         });
 

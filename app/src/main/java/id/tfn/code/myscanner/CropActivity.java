@@ -86,10 +86,12 @@ public class CropActivity extends AppCompatActivity {
             MyConstants.selectedImageBitmap = null;
 
             Bitmap scaledBitmap = scaledBitmap(selectedImageBitmap, holderImageCrop.getWidth(), holderImageCrop.getHeight());
+
             imageView.setImageBitmap(scaledBitmap);
 
             Bitmap tempBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
             Map<Integer, PointF> pointFs = getEdgePoints(tempBitmap);
+
 
             polygonView.setPoints(pointFs);
             polygonView.setVisibility(View.VISIBLE);
@@ -161,6 +163,7 @@ public class CropActivity extends AppCompatActivity {
     private Map<Integer, PointF> getEdgePoints(Bitmap tempBitmap) {
         Log.v("tfn-tag", "getEdgePoints");
         List<PointF> pointFs = getContourEdgePoints(tempBitmap);
+        Log.i("ORDERSLIST",pointFs.toString());
         Map<Integer, PointF> orderedPoints = orderedValidEdgePoints(tempBitmap, pointFs);
         return orderedPoints;
     }
@@ -170,12 +173,11 @@ public class CropActivity extends AppCompatActivity {
 
         MatOfPoint2f point2f = nativeClass.getPoint(tempBitmap);
         List<Point> points = Arrays.asList(point2f.toArray());
-
         List<PointF> result = new ArrayList<>();
         for (int i = 0; i < points.size(); i++) {
             result.add(new PointF(((float) points.get(i).x), ((float) points.get(i).y)));
         }
-
+        Log.i("tfn-tag","HERE");
         return result;
 
     }

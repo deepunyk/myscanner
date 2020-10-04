@@ -81,6 +81,7 @@ public class HomeActivity extends AppCompatActivity {
         photoViewModel.getAllPhotos().observe(this, new Observer<List<Photo>>() {
             @Override
             public void onChanged(List<Photo> photos) {
+                MyConstants.size = photos.size();
                 if(photos.size()==0){
                     emptyLayout.setVisibility(View.VISIBLE);
                 }else{
@@ -94,8 +95,8 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 ImagePicker.Companion.with(HomeActivity.this)
-                        .compress(1024)
-                        .maxResultSize(1080, 1080)
+                        .compress(2000)
+                        .maxResultSize(2000, 2000)
                         .start();
             }
         });
@@ -124,8 +125,8 @@ public class HomeActivity extends AppCompatActivity {
                 File file = new File(directoryPath, "/1.png");
                 fOut = new FileOutputStream(file);
 
-                Bitmap bitmap = BitmapFactory.decodeByteArray(photo.getBitmap(), 0, photo.getBitmap().length);
-                bitmap.compress(Bitmap.CompressFormat.PNG, 85, fOut);
+                /*Bitmap bitmap = BitmapFactory.decodeByteArray(photo.getBitmap(), 0, photo.getBitmap().length);
+                bitmap.compress(Bitmap.CompressFormat.PNG, 85, fOut);*/
                 fOut.flush();
                 fOut.close();
                 Image image = Image.getInstance(directoryPath + "/" + "1.png");

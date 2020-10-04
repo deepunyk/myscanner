@@ -2,6 +2,7 @@ package id.tfn.code.myscanner.libraries;
 
 import android.graphics.Bitmap;
 
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -20,13 +21,16 @@ import java.util.List;
 import id.tfn.code.myscanner.helpers.ImageUtils;
 import id.tfn.code.myscanner.helpers.MathUtils;
 
+import static id.tfn.code.myscanner.helpers.ImageUtils.bitmapToMat;
+import static id.tfn.code.myscanner.helpers.ImageUtils.matToBitmap;
+
 public class NativeClass {
 
     static {
         System.loadLibrary("opencv_java3");
     }
 
-    private static final int THRESHOLD_LEVEL = 2;
+    int THRESHOLD_LEVEL = 2;
     private static final double AREA_LOWER_THRESHOLD = 0.2;
     private static final double AREA_UPPER_THRESHOLD = 0.98;
     private static final double DOWNSCALE_IMAGE_SIZE = 600f;
@@ -35,8 +39,8 @@ public class NativeClass {
         id.tfn.code.myscanner.libraries.PerspectiveTransformation perspective = new id.tfn.code.myscanner.libraries.PerspectiveTransformation();
         MatOfPoint2f rectangle = new MatOfPoint2f();
         rectangle.fromArray(new Point(x1, y1), new Point(x2, y2), new Point(x3, y3), new Point(x4, y4));
-        Mat dstMat = perspective.transform(ImageUtils.bitmapToMat(bitmap), rectangle);
-        return ImageUtils.matToBitmap(dstMat);
+        Mat dstMat = perspective.transform(bitmapToMat(bitmap), rectangle);
+        return matToBitmap(dstMat);
     }
 
     private static Comparator<MatOfPoint2f> AreaDescendingComparator = new Comparator<MatOfPoint2f>() {
@@ -47,10 +51,39 @@ public class NativeClass {
         }
     };
 
+    public Bitmap FilterGray(Bitmap bitmap){
+        Mat src = bitmapToMat(bitmap);
+        Imgproc.cvtColor(src, src, Imgproc.COLOR_RGB2GRAY);
+        bitmap = Bitmap.createBitmap(src.cols(), src.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(src, bitmap);
+        return bitmap;
+    }
+
+    public Bitmap FilterMagic(Bitmap bitmap) {
+        Mat mbgra = bitmapToMat(bitmap);
+        Imgproc.cvtColor(mbgra, mbgra, Imgproc.COLOR_RGB2GRAY);
+        bitmap = Bitmap.createBitmap(mbgra.cols(), mbgra.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(mbgra, bitmap);
+        Mat dst = mbgra.clone();
+        float alpha = 1.9f;
+        float beta = -80;
+        dst.convertTo(dst, -1, alpha, beta);
+
+        return matToBitmap(dst);
+    }
+
+    public Bitmap FilterBW(Bitmap bitmap){
+        Mat tmp = new Mat (bitmap.getWidth(), bitmap.getHeight(), CvType.CV_8UC1);
+        Utils.bitmapToMat(bitmap, tmp);
+        Imgproc.cvtColor(tmp, tmp, Imgproc.COLOR_RGB2GRAY);
+        Imgproc.cvtColor(tmp, tmp, Imgproc.COLOR_GRAY2RGB, 4);
+        Utils.matToBitmap(tmp, bitmap);
+        return bitmap;
+    }
 
     public MatOfPoint2f getPoint(Bitmap bitmap) {
 
-        Mat src = ImageUtils.bitmapToMat(bitmap);
+        Mat src = bitmapToMat(bitmap);
 
         // Downscale image for better performance.
         double ratio = DOWNSCALE_IMAGE_SIZE / Math.max(src.width(), src.height());
@@ -60,7 +93,8 @@ public class NativeClass {
 
         List<MatOfPoint2f> rectangles = getPoints(downscaled);
         if (rectangles.size() == 0) {
-            return null;
+            THRESHOLD_LEVEL += 2;
+            return getPoint(bitmap);
         }
         Collections.sort(rectangles, AreaDescendingComparator);
         MatOfPoint2f largestRectangle = rectangles.get(0);
@@ -104,7 +138,7 @@ public class NativeClass {
                     // HACK: Use Canny instead of zero threshold level.
                     // Canny helps to catch squares with gradient shading.
                     // NOTE: No kernel size parameters on Java API.
-                    Imgproc.Canny(gray0, gray, 10, 20);
+                    Imgproc.Canny(gray0, gray, 10, 30);
 
                     // Dilate Canny output to remove potential holes between edge segments.
                     Imgproc.dilate(gray, gray, Mat.ones(new Size(3, 3), 0));

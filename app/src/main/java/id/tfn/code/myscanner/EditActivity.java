@@ -18,6 +18,9 @@ import android.widget.LinearLayout;
 import net.alhazmy13.imagefilter.ImageFilter;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 import id.tfn.code.myscanner.data.Photo;
@@ -30,12 +33,12 @@ public class EditActivity extends AppCompatActivity {
 
     Toolbar toolbar;
     ImageView img;
-    LinearLayout originalLayout, gothamLayout, oldLayout, sketchLayout, hdrLayout, bwLayout, magicLayout, grayLayout;
-    ImageView originalImage, gothamImage, oldImage, sketchImage, hdrImage, bwImage, magicImage, grayImage;
+    LinearLayout originalLayout, gothamLayout, oldLayout, sketchLayout, hdrLayout, magicLayout, grayLayout;
+    ImageView originalImage, gothamImage, oldImage, sketchImage, hdrImage, magicImage, grayImage;
     private PhotoViewModel photoViewModel;
     int id = 0;
     String filter = "";
-    byte[] imageArray;
+    String url = "";
     NativeClass nativeClass = new NativeClass();
     Bitmap originalBitmap;
     int code = 0;
@@ -59,7 +62,6 @@ public class EditActivity extends AppCompatActivity {
         oldLayout = (LinearLayout) findViewById(R.id.old_layout);
         sketchLayout = (LinearLayout) findViewById(R.id.sketch_layout);
         hdrLayout = (LinearLayout) findViewById(R.id.hdr_layout);
-        bwLayout = (LinearLayout) findViewById(R.id.bw_layout);
         magicLayout = (LinearLayout) findViewById(R.id.magic_layout);
         grayLayout = (LinearLayout) findViewById(R.id.gray_layout);
 
@@ -68,15 +70,14 @@ public class EditActivity extends AppCompatActivity {
         oldImage = (ImageView) findViewById(R.id.old_image);
         sketchImage = (ImageView) findViewById(R.id.sketch_image);
         hdrImage = (ImageView) findViewById(R.id.hdr_image);
-        bwImage = (ImageView) findViewById(R.id.bw_image);
         magicImage = (ImageView) findViewById(R.id.magic_image);
         grayImage = (ImageView) findViewById(R.id.gray_image);
 
         id = MyConstants.id;
         filter = MyConstants.filter;
-        imageArray = MyConstants.imageArray;
+        url = MyConstants.url;
 
-        originalBitmap = BitmapFactory.decodeByteArray(imageArray, 0, imageArray.length);
+        originalBitmap = BitmapFactory.decodeFile(url);
         img.setImageBitmap(originalBitmap);
         originalImage.setImageBitmap(originalBitmap);
         gothamImage.setImageBitmap(ImageFilter.applyFilter(originalBitmap, ImageFilter.Filter.GOTHAM));
@@ -85,7 +86,6 @@ public class EditActivity extends AppCompatActivity {
         hdrImage.setImageBitmap(ImageFilter.applyFilter(originalBitmap, ImageFilter.Filter.HDR));
         grayImage.setImageBitmap(nativeClass.FilterGray(originalBitmap));
         magicImage.setImageBitmap(nativeClass.FilterMagic(originalBitmap));
-        bwImage.setImageBitmap(nativeClass.FilterBW(originalBitmap));
 
 
         originalLayout.setOnClickListener(new View.OnClickListener() {
@@ -102,15 +102,6 @@ public class EditActivity extends AppCompatActivity {
                 Bitmap tempBitMap = nativeClass.FilterGray(originalBitmap);
                 img.setImageBitmap(tempBitMap);
                 updateImage(tempBitMap,"gray");
-            }
-        });
-
-        bwLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Bitmap tempBitMap = nativeClass.FilterBW(originalBitmap);
-                img.setImageBitmap(tempBitMap);
-                updateImage(tempBitMap,"bw");
             }
         });
 
@@ -161,12 +152,20 @@ public class EditActivity extends AppCompatActivity {
     }
 
     void updateImage(Bitmap bitmap, String filter){
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-        byte[] byteArray = stream.toByteArray();
-        Photo photo = new Photo(byteArray,filter);
+        try {
+            OutputStream fOut = null;
+            File file = new File(url);
+            fOut = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 85, fOut);
+            fOut.flush();
+            fOut.close();
+        Photo photo = new Photo(url,filter);
         photo.setId(id);
-        photoViewModel.update(photo); }
+        photoViewModel.update(photo);
+        }catch (Exception e){
+
+        }
+    }
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();

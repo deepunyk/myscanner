@@ -72,15 +72,6 @@ public class NativeClass {
         return matToBitmap(dst);
     }
 
-    public Bitmap FilterBW(Bitmap bitmap){
-        Mat tmp = new Mat (bitmap.getWidth(), bitmap.getHeight(), CvType.CV_8UC1);
-        Utils.bitmapToMat(bitmap, tmp);
-        Imgproc.cvtColor(tmp, tmp, Imgproc.COLOR_RGB2GRAY);
-        Imgproc.cvtColor(tmp, tmp, Imgproc.COLOR_GRAY2RGB, 4);
-        Utils.matToBitmap(tmp, bitmap);
-        return bitmap;
-    }
-
     public MatOfPoint2f getPoint(Bitmap bitmap) {
 
         Mat src = bitmapToMat(bitmap);

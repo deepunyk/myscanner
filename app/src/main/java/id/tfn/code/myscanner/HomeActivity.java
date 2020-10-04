@@ -81,7 +81,6 @@ public class HomeActivity extends AppCompatActivity {
         photoViewModel.getAllPhotos().observe(this, new Observer<List<Photo>>() {
             @Override
             public void onChanged(List<Photo> photos) {
-                MyConstants.size = photos.size();
                 if(photos.size()==0){
                     emptyLayout.setVisibility(View.VISIBLE);
                 }else{
@@ -121,15 +120,7 @@ public class HomeActivity extends AppCompatActivity {
 
             for(int i = 0; i<photos.size();i++) {
                 Photo photo = photos.get(i);
-                OutputStream fOut = null;
-                File file = new File(directoryPath, "/1.png");
-                fOut = new FileOutputStream(file);
-
-                /*Bitmap bitmap = BitmapFactory.decodeByteArray(photo.getBitmap(), 0, photo.getBitmap().length);
-                bitmap.compress(Bitmap.CompressFormat.PNG, 85, fOut);*/
-                fOut.flush();
-                fOut.close();
-                Image image = Image.getInstance(directoryPath + "/" + "1.png");
+                Image image = Image.getInstance(photo.getUrl());
 
                 float scaler = ((document.getPageSize().getWidth() - document.leftMargin()
                         - document.rightMargin() - 0) / image.getWidth()) * 100;

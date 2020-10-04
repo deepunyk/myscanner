@@ -7,6 +7,6 @@ public class MyConstants {
     public static Bitmap selectedImageBitmap;
     public static int id;
     public static String filter;
-    public static byte[] imageArray;
-    public static int size;
+    public static String url;
+    public final static String directoryPath = android.os.Environment.getExternalStorageDirectory().toString();
 }

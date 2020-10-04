@@ -13,8 +13,8 @@ public class Photo {
 
     private String url;
 
-
     private String filter;
+
 
     public void setId(int id) {
         this.id = id;
@@ -29,7 +29,7 @@ public class Photo {
         return id;
     }
 
-    public String getBitmap() {
+    public String getUrl() {
         return url;
     }
 

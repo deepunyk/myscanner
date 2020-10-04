@@ -23,11 +23,15 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import id.tfn.code.myscanner.data.Photo;
 import id.tfn.code.myscanner.data.PhotoViewModel;
@@ -120,15 +124,26 @@ public class CropActivity extends AppCompatActivity {
         public void onClick(View v) {
 
             Bitmap bitmap = getCroppedImage();
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-            byte[] byteArray = stream.toByteArray();
-            bitmap.recycle();
-            Photo photo = new Photo(byteArray,"original");
-            photoViewModel.insert(photo);
-            Intent intent = new Intent(CropActivity.this, HomeActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
+            try {
+                Random r = new Random();
+                int name = r.nextInt(10000000) + 10000000;
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                OutputStream fOut = null;
+                String path = MyConstants.directoryPath + "/" + name + ".png";
+                File file = new File(path);
+                fOut = new FileOutputStream(file);
+                bitmap.compress(Bitmap.CompressFormat.PNG, 85, fOut);
+                fOut.flush();
+                fOut.close();
+                Photo photo = new Photo(path,"original");
+                photoViewModel.insert(photo);
+                Intent intent = new Intent(CropActivity.this, HomeActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+            }catch (Exception e){
+
+            }
         }
     };
 

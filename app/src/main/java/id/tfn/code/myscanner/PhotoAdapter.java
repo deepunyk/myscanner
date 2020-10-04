@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +44,10 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoHolder>
     @Override
     public void onBindViewHolder(@NonNull PhotoHolder holder, int position) {
         final Photo curPhoto = photos.get(position);
-        final Bitmap bitmap = BitmapFactory.decodeByteArray(curPhoto.getBitmap(), 0, curPhoto.getBitmap().length);
+        Log.i("VIEWID", curPhoto.getId() + "");
+
+        File imgFile = new  File(curPhoto.getUrl());
+        Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
         holder.img.setImageBitmap(bitmap);
         holder.deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -56,7 +61,7 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoHolder>
                 Intent intent = new Intent(context, EditActivity.class);
                 MyConstants.filter = curPhoto.getFilter();
                 MyConstants.id = curPhoto.getId();
-                MyConstants.imageArray = curPhoto.getBitmap();
+                MyConstants.url = curPhoto.getUrl();
                 context.startActivity(intent);
             }
         });
@@ -94,6 +99,8 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoHolder>
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        File file = new File(photo.getUrl());
+                        boolean deleted = file.getAbsoluteFile().delete();
                         photoViewModel.delete(photo);
                     }
                 })

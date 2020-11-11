@@ -6,8 +6,8 @@ android {
         applicationId "id.tfn.code.myscanner"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.0.1"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     buildTypes {
@@ -41,4 +41,11 @@ dependencies {
     annotationProcessor "androidx.lifecycle:lifecycle-compiler:$lifecycle_version"
     implementation group: 'com.itextpdf', name: 'itextpdf', version: '5.5.13'
     implementation 'net.alhazmy13.ImageFilters:library:0.1.2-beta'
+    implementation 'com.arasthel:asyncjob-library:1.0.3'
+    implementation 'com.nabinbhandari.android:permissions:3.8'
+    implementation 'com.google.android.gms:play-services-ads:19.4.0'
+    implementation 'id.zelory:compressor:3.0.0'
+    implementation 'com.github.yalantis:ucrop:2.2.6-native'
+
+
 }

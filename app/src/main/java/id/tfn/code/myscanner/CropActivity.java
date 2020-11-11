@@ -2,15 +2,20 @@ package id.tfn.code.myscanner;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -18,6 +23,8 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.yalantis.ucrop.UCrop;
 
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
@@ -38,6 +45,7 @@ import id.tfn.code.myscanner.data.PhotoViewModel;
 import id.tfn.code.myscanner.helpers.MyConstants;
 import id.tfn.code.myscanner.libraries.NativeClass;
 import id.tfn.code.myscanner.libraries.PolygonView;
+import id.zelory.compressor.Compressor;
 
 public class CropActivity extends AppCompatActivity {
 
@@ -86,10 +94,11 @@ public class CropActivity extends AppCompatActivity {
     private void initializeCropping() {
 
         try {
-            selectedImageBitmap = MyConstants.selectedImageBitmap;
-            MyConstants.selectedImageBitmap = null;
+            selectedImageBitmap = MyConstants.selectedImageBitmapList.get(MyConstants.count);
 
             Bitmap scaledBitmap = scaledBitmap(selectedImageBitmap, holderImageCrop.getWidth(), holderImageCrop.getHeight());
+
+
 
             imageView.setImageBitmap(scaledBitmap);
 
@@ -108,14 +117,37 @@ public class CropActivity extends AppCompatActivity {
             polygonView.setLayoutParams(layoutParams);
         }
         catch (Exception e){
+            try {
             Toast.makeText(this, "No document found", Toast.LENGTH_SHORT).show();
-            Bitmap tempBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
-            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(tempBitmap.getWidth(), tempBitmap.getHeight());
-            layoutParams.gravity = Gravity.CENTER;
+            File tempDir= Environment.getExternalStorageDirectory();
+            tempDir=new File(tempDir.getAbsolutePath()+"/.temp/");
+            tempDir.mkdir();
 
-            polygonView.setVisibility(View.VISIBLE);
+                File tempFile = File.createTempFile("cropping", ".jpg", tempDir);
 
-            polygonView.setLayoutParams(layoutParams);
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            selectedImageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+            byte[] bitmapData = bytes.toByteArray();
+
+            //write the bytes in file
+            FileOutputStream fos = new FileOutputStream(tempFile);
+            fos.write(bitmapData);
+            fos.flush();
+            fos.close();
+            UCrop.Options options = new UCrop.Options();
+            options.setFreeStyleCropEnabled(true);
+            options.setActiveControlsWidgetColor(ContextCompat.getColor(this, R.color.colorAccent));
+            options.setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
+            options.setHideBottomControls(false);
+            options.setCompressionFormat(Bitmap.CompressFormat.JPEG);
+            options.setCompressionQuality(80);
+            options.withMaxResultSize(1080,1080);
+            UCrop.of(Uri.fromFile(tempFile),Uri.fromFile(tempFile))
+                    .withOptions(options)
+                    .start(CropActivity.this);
+            }catch (Exception ee){
+
+            }
         }
     }
 
@@ -125,22 +157,37 @@ public class CropActivity extends AppCompatActivity {
 
             Bitmap bitmap = getCroppedImage();
             try {
-                Random r = new Random();
-                int name = r.nextInt(10000000) + 10000000;
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                OutputStream fOut = null;
-                String path = MyConstants.directoryPath + "/" + name + ".png";
-                File file = new File(path);
-                fOut = new FileOutputStream(file);
-                bitmap.compress(Bitmap.CompressFormat.PNG, 85, fOut);
-                fOut.flush();
-                fOut.close();
-                Photo photo = new Photo(path,"original");
-                photoViewModel.insert(photo);
-                Intent intent = new Intent(CropActivity.this, HomeActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
+                MyConstants.selectedImageBitmapList.set(MyConstants.count, bitmap);
+                try {
+                    File tempDir= Environment.getExternalStorageDirectory();
+                    tempDir=new File(tempDir.getAbsolutePath()+"/.temp/");
+                    tempDir.mkdir();
+
+                    File tempFile = File.createTempFile(MyConstants.count+"ms", ".jpg", tempDir);
+
+                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+                    byte[] bitmapData = bytes.toByteArray();
+
+                    //write the bytes in file
+                    FileOutputStream fos = new FileOutputStream(tempFile);
+                    fos.write(bitmapData);
+                    fos.flush();
+                    fos.close();
+                    UCrop.Options options = new UCrop.Options();
+                    options.setFreeStyleCropEnabled(true);
+                    options.setActiveControlsWidgetColor(ContextCompat.getColor(CropActivity.this, R.color.colorAccent));
+                    options.setStatusBarColor(ContextCompat.getColor(CropActivity.this, R.color.colorPrimaryDark));
+                    options.setHideBottomControls(false);
+                    options.setCompressionFormat(Bitmap.CompressFormat.JPEG);
+                    options.setCompressionQuality(80);
+                    options.withMaxResultSize(1080,1080);
+                    UCrop.of(Uri.fromFile(tempFile),Uri.fromFile(tempFile))
+                            .withOptions(options)
+                            .start(CropActivity.this);
+                }catch (Exception ee){
+
+                }
             }catch (Exception e){
 
             }
@@ -187,6 +234,7 @@ public class CropActivity extends AppCompatActivity {
         Log.v("tfn-tag", "getContourEdgePoints");
 
         MatOfPoint2f point2f = nativeClass.getPoint(tempBitmap);
+
         List<Point> points = Arrays.asList(point2f.toArray());
         List<PointF> result = new ArrayList<>();
         for (int i = 0; i < points.size(); i++) {
@@ -220,5 +268,37 @@ public class CropActivity extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return true;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
+            final Uri resultUri = UCrop.getOutput(data);
+            try {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), resultUri);
+                MyConstants.selectedImageBitmapList.set(MyConstants.count, bitmap);
+                MyConstants.count +=1;
+                if(MyConstants.selectedImageBitmapList.size() > MyConstants.count){
+                    Intent intent = new Intent(CropActivity.this, CropActivity.class);
+                    startActivity(intent);
+                }else {
+                    MyConstants.count = 0;
+                    Intent intent = new Intent(CropActivity.this, FilterActivity.class);
+                    startActivity(intent);
+                }
+                finish();
+            }catch(Exception e){
+                Intent intent = new Intent(CropActivity.this, HomeActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+            }
+        } else if (resultCode == UCrop.RESULT_ERROR) {
+            final Throwable cropError = UCrop.getError(data);
+            Toast.makeText(this,cropError+"", Toast.LENGTH_SHORT).show();
+            finish();
+        }else{
+            finish();
+        }
     }
 }

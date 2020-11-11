@@ -1,6 +1,7 @@
 package id.tfn.code.myscanner.libraries;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -30,9 +31,9 @@ public class NativeClass {
         System.loadLibrary("opencv_java3");
     }
 
-    int THRESHOLD_LEVEL = 2;
-    private static final double AREA_LOWER_THRESHOLD = 0.2;
-    private static final double AREA_UPPER_THRESHOLD = 0.98;
+    int THRESHOLD_LEVEL = 1;
+    double AREA_LOWER_THRESHOLD = 0.2;
+    double AREA_UPPER_THRESHOLD = 0.98;
     private static final double DOWNSCALE_IMAGE_SIZE = 600f;
 
     public Bitmap getScannedBitmap(Bitmap bitmap, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) {
@@ -84,7 +85,11 @@ public class NativeClass {
 
         List<MatOfPoint2f> rectangles = getPoints(downscaled);
         if (rectangles.size() == 0) {
-            THRESHOLD_LEVEL += 2;
+            Log.i("THRESHOLD LEVEL", THRESHOLD_LEVEL + "");
+            THRESHOLD_LEVEL += 10;
+            if(THRESHOLD_LEVEL > 50){
+                return null;
+            }
             return getPoint(bitmap);
         }
         Collections.sort(rectangles, AreaDescendingComparator);
@@ -126,10 +131,11 @@ public class NativeClass {
             // Try several threshold levels.
             for (int l = 0; l < THRESHOLD_LEVEL; l++) {
                 if (l == 0) {
+
                     // HACK: Use Canny instead of zero threshold level.
                     // Canny helps to catch squares with gradient shading.
                     // NOTE: No kernel size parameters on Java API.
-                    Imgproc.Canny(gray0, gray, 10, 30);
+                    Imgproc.Canny(gray0, gray, 80, 100);
 
                     // Dilate Canny output to remove potential holes between edge segments.
                     Imgproc.dilate(gray, gray, Mat.ones(new Size(3, 3), 0));
@@ -137,6 +143,7 @@ public class NativeClass {
                     int threshold = (l + 1) * 255 / THRESHOLD_LEVEL;
                     Imgproc.threshold(gray0, gray, threshold, 255, Imgproc.THRESH_BINARY);
                 }
+
 
                 // Find contours and store them all as a list.
                 Imgproc.findContours(gray, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);

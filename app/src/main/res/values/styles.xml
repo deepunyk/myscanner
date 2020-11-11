@@ -9,7 +9,8 @@
     </style>
 
     <style name="Toolbar_Custom_Theme" parent="AppTheme">
-        <item name="android:textColorSecondary">#ffffff</item>
+        <item name="android:textColorSecondary">@color/colorPrimary</item>
+        <item name="android:background">@color/white</item>
     </style>
 
 </resources>

@@ -13,9 +13,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
@@ -48,14 +50,16 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoHolder>
 
         File imgFile = new  File(curPhoto.getUrl());
         Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-        holder.img.setImageBitmap(bitmap);
+        holder.img.setImageBitmap(getResizedBitmap(bitmap,800));
+        String curPage = ""+(position+1);
+        holder.numberText.setText(curPage);
         holder.deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 showDeleteDiagog(context, curPhoto);
             }
         });
-        holder.editButton.setOnClickListener(new View.OnClickListener() {
+        holder.parentLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(context, EditActivity.class);
@@ -82,13 +86,16 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoHolder>
 
     class PhotoHolder extends RecyclerView.ViewHolder{
         private ImageView img;
-        private Button deleteButton, editButton;
+        private Button deleteButton;
+        private CardView parentLayout;
+        private TextView numberText;
 
         public PhotoHolder(View itemView){
             super(itemView);
             img = itemView.findViewById(R.id.scan_img);
             deleteButton = itemView.findViewById(R.id.delete_button);
-            editButton = itemView.findViewById(R.id.edit_button);
+            parentLayout = itemView.findViewById(R.id.parent_layout);
+            numberText = itemView.findViewById(R.id.number_txt);
         }
     }
 
@@ -107,5 +114,20 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoHolder>
                 .setNegativeButton("No", null)
                 .create();
         dialog.show();
+    }
+
+    public Bitmap getResizedBitmap(Bitmap image, int maxSize) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        float bitmapRatio = (float)width / (float) height;
+        if (bitmapRatio > 1) {
+            width = maxSize;
+            height = (int) (width / bitmapRatio);
+        } else {
+            height = maxSize;
+            width = (int) (height * bitmapRatio);
+        }
+        return Bitmap.createScaledBitmap(image, width, height, true);
     }
 }

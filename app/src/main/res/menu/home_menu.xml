@@ -3,22 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".HomeActivity">
     <item
-        android:id="@+id/action_pdf"
-        android:orderInCategory="100"
-        android:title="Save as PDF"
-        app:showAsAction="never" />
-    <item
         android:id="@+id/action_delete"
         android:orderInCategory="200"
         android:title="Delete all"
-        app:showAsAction="never"
-        />
-
-    <item
-        android:id="@+id/action_share"
-        android:orderInCategory="200"
-        android:title="Share app"
-        app:showAsAction="never"
+        android:icon="@drawable/delete"
+        app:showAsAction="ifRoom"
         />
 
 </menu>

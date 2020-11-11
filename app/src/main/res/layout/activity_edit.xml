@@ -10,15 +10,13 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
         android:elevation="8dp"
         android:minHeight="?attr/actionBarSize"
         android:theme="@style/Toolbar_Custom_Theme"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:title="My Scanner"
-        app:titleTextColor="@android:color/white" />
+        app:title="My Scanner" />
 
     <ImageView
         android:id="@+id/img"

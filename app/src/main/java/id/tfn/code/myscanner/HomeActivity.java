@@ -135,8 +135,8 @@ public class HomeActivity extends AppCompatActivity {
         photoViewModel = new ViewModelProvider(this, ViewModelProvider.AndroidViewModelFactory.getInstance(this.getApplication())).get(PhotoViewModel.class);
 
 
-//        AdRequest adRequest = new AdRequest.Builder().build();
-//        adView.loadAd(adRequest);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        adView.loadAd(adRequest);
 
         photoViewModel.getAllPhotos().observe(this, new Observer<List<Photo>>() {
             @Override
@@ -190,9 +190,6 @@ public class HomeActivity extends AppCompatActivity {
                 new AlertDialog.Builder(HomeActivity.this)
                         .setTitle("Select application")
                         .setMessage("Please select your application to scan the photos")
-
-                        // Specifying a listener allows you to take an action before dismissing the dialog.
-                        // The dialog is automatically dismissed when a dialog button is clicked.
                         .setPositiveButton("Camera", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 String directoryPath = android.os.Environment.getExternalStorageDirectory().toString() + "/MyScanner";
@@ -417,7 +414,6 @@ public class HomeActivity extends AppCompatActivity {
             for(int i = 0;i<selectedImageList.size();i++){
                 InputStream inputStream = getContentResolver().openInputStream(selectedImageList.get(i));
                 selectedBitmap = BitmapFactory.decodeStream(inputStream);
-                Log.i("YHOOOOOOOOOOOOOOOO", "loadImage: " +selectedImageList.get(i).getEncodedPath());
                 MyConstants.selectedImageBitmapList.add(modifyOrientation(selectedBitmap, getPath(this, selectedImageList.get(i))));
             }
             Intent intent = new Intent(getApplicationContext(), CropActivity.class);
@@ -484,7 +480,7 @@ public class HomeActivity extends AppCompatActivity {
                         task = String.valueOf(taskEditText.getText());
                         progressBar.setVisibility(View.VISIBLE);
                         if (mInterstitialAd.isLoaded()) {
-                            //mInterstitialAd.show();
+                            mInterstitialAd.show();
                         } else {
                             new AsyncJob.AsyncJobBuilder<Boolean>()
                                     .doInBackground(new AsyncJob.AsyncAction<Boolean>() {
